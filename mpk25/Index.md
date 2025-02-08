@@ -1,6 +1,5 @@
 <html>
 <head>
-  <title></title>
 </head>
 <body>
 <h1>MPK 2025</h1>
