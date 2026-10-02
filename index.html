@@ -6,45 +6,45 @@
 <title>samione.fi</title>
 <style>
 html,body{height:100%;margin:0}
-body{display:flex;flex-direction:column;background:#232323}
+body{display:flex;flex-direction:column;background:#232323;overflow:hidden}
 #kuvio{flex:1;min-height:0}
-#teksti{text-align:center;padding:15px;font:18px;color:#e5e4e9;margin-top:-400px;}
-h2 {line-height: 0.4em;font-size: 10vw;font-family:'Jost',sans-serif;}
+#teksti{text-align:center;color:#e5e4e9;margin-top:-15vh;z-index:1;pointer-events:none}
+h2{line-height:.4em;font-size:10vw;font-family:'Jost',sans-serif}
 canvas{display:block}
 </style>
 </head>
 
 <body>
-
 <div id="kuvio"></div>
-
-<div id="teksti">
-  <h2>samione</h2>
-</div>
+<div id="teksti"><h2>samione</h2></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
-const scene=new THREE.Scene(), container=document.getElementById("kuvio");
-const frustum=2.8, thickness=.025, material=new THREE.MeshBasicMaterial({color:0xff7a00});
+const scene=new THREE.Scene(),c=document.getElementById("kuvio"),f=2.8,t=.025;
+const mat=new THREE.MeshBasicMaterial({color:0xff7a00});
+const cam=new THREE.OrthographicCamera(-f,f,f,-f,.1,50);
+cam.position.set(3,3,3);cam.lookAt(0,0,0);
 
-const aspect=()=>container.clientWidth/container.clientHeight;
-const camera=new THREE.OrthographicCamera(-frustum*aspect(),frustum*aspect(),frustum,-frustum,.1,50);
-camera.position.set(3,3,3);
-camera.lookAt(0,0,0);
+const r=new THREE.WebGLRenderer({antialias:true,alpha:true});
+r.setPixelRatio(Math.min(devicePixelRatio,2));c.appendChild(r.domElement);
 
-const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-container.appendChild(renderer.domElement);
+const controls=new THREE.OrbitControls(cam,r.domElement);
+Object.assign(controls,{
+  enableDamping:true,dampingFactor:.06,
+  enableZoom:false,enablePan:false,
+  autoRotate:true,autoRotateSpeed:.7
+});
 
-const group=new THREE.Group();
-scene.add(group);
+let timer;
+controls.addEventListener("start",()=>{controls.autoRotate=false;clearTimeout(timer)});
+controls.addEventListener("end",()=>timer=setTimeout(()=>controls.autoRotate=true,3000));
+
+const group=new THREE.Group();scene.add(group);
 
 function edge(a,b){
   const d=new THREE.Vector3().subVectors(b,a);
-  const m=new THREE.Mesh(
-    new THREE.CylinderGeometry(thickness,thickness,d.length(),8),
-    material
-  );
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(t,t,d.length(),8),mat);
   m.position.copy(a).add(b).multiplyScalar(.5);
   m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.clone().normalize());
   group.add(m);
@@ -52,40 +52,30 @@ function edge(a,b){
 
 function cube(x,y,z){
   const v=[];
-  for(let X of [-.5,.5])
-    for(let Y of [-.5,.5])
-      for(let Z of [-.5,.5])
-        v.push(new THREE.Vector3(x+X,y+Y,z+Z));
+  for(let X of [-.5,.5])for(let Y of [-.5,.5])for(let Z of [-.5,.5])
+    v.push(new THREE.Vector3(x+X,y+Y,z+Z));
 
-  for(let i=0;i<8;i++)
-    for(let j=i+1;j<8;j++){
-      const a=v[i],b=v[j];
-      if(Math.abs(a.x-b.x)+Math.abs(a.y-b.y)+Math.abs(a.z-b.z)==1) edge(a,b);
-    }
+  for(let i=0;i<8;i++)for(let j=i+1;j<8;j++){
+    const a=v[i],b=v[j];
+    if(Math.abs(a.x-b.x)+Math.abs(a.y-b.y)+Math.abs(a.z-b.z)==1)edge(a,b);
+  }
 }
 
-[
- [-.5,.5,-.5],
- [.5,-.5,-.5],
- [-.5,-.5,.5]
-].forEach(p=>cube(...p));
+[[-.5,.5,-.5],[.5,-.5,-.5],[-.5,-.5,.5]].forEach(p=>cube(...p));
 
 function resize(){
-  camera.left=-frustum*aspect();
-  camera.right=frustum*aspect();
-  camera.updateProjectionMatrix();
-  renderer.setSize(container.clientWidth,container.clientHeight);
+  const w=c.clientWidth,h=c.clientHeight,a=w/h;
+  cam.left=-f*(a>1?a:1);cam.right=f*(a>1?a:1);
+  cam.top=f*(a<1?1/a:1);cam.bottom=-f*(a<1?1/a:1);
+  cam.updateProjectionMatrix();r.setSize(w,h);
 }
-addEventListener("resize",resize);
-resize();
+addEventListener("resize",resize);resize();
 
 (function animate(){
   requestAnimationFrame(animate);
-  group.rotation.y+=.008;
-  group.rotation.x=Math.sin(Date.now()*.00035)*.3+.1;
-  renderer.render(scene,camera);
+  controls.update();
+  r.render(scene,cam);
 })();
 </script>
-
 </body>
 </html>
