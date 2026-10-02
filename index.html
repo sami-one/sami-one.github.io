@@ -1,158 +1,88 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>samione.fi</title>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Samione</title>
+<style>
+html,body{height:100%;margin:0}
+body{display:flex;flex-direction:column;background:#232323;font-family: 'Jost', sans-serif;}
+#kuvio{flex:1;min-height:0}
+#teksti{text-align:center;padding:15px;font:18px}
+canvas{display:block}
+</style>
+</head>
 
-        <style type="text/css">
-        @import url('https://fonts.googleapis.com/css2?family=Jost&display=swap');
-        img {
-            max-width: 100%;
-            /*display: block;*/
-        }
-        a {
-            color: #e5e4e9;
-            text-decoration: none;
-        }
-        .center {
-        margin: auto;
-        width: 50%;
-        padding: 10px;
-        text-align: center;
-        }
-        .logo {
-            width: 50%;
-            height: 50%;
-            filter: invert(66%) sepia(82%) saturate(1629%) hue-rotate(323deg) brightness(101%) contrast(102%);
-        }
-        h2 {
-            margin-top: 0;
-            line-height: 0.4em;
-            font-size: 10vw;
-        }
-        .red {
-            color: #334d68;
-            text-decoration: none;
-        }
-        a:hover .red {
-            color: #d44032;
-            text-decoration: none;
-        }
-        /*
-        $palette-color1: #e5e4e9;
-        $palette-color2: #0db4ba;
-        $palette-color3: #007fdf;
-        $palette-color4: #ff8853;
-        $palette-color5: #d44032;
-        $palette-color6: #334d68;
-        $palette-color7: #1e1146;
-        $palette-color8: #232323;
-        */
-          :root{ --bg:#232323; }
-          @media (prefers-color-scheme: dark){
-            :root:not([data-theme="light"]){ --bg:#121212; }
-          }
-          :root[data-theme="dark"]{ --bg:#232323; }
-          html,body{height:100%;margin:0;}
-          body{
-            background:var(--bg);
-            display:flex;align-items:center;justify-content:center;
-            overflow:hidden; box-sizing:border-box;
-            padding-top:env(safe-area-inset-top,0px);
-            padding-bottom:env(safe-area-inset-bottom,0px);
-            color: #e5e4e9;
-            font-family: 'Jost', sans-serif;
-          }
-          canvas{display:block;}
-        </style>
-    </head>
-    <body>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-        <!--<div class="center">-->
-            <!--<img src="vectorpaint.svg" alt="samione cubes" class="logo"/><br/>-->
-            <script>
-            (function(){
-              var scene = new THREE.Scene();
-              var frustum = 2.4;
-            
-              function aspect(){ return window.innerWidth/window.innerHeight; }
-              var camera = new THREE.OrthographicCamera(-frustum*aspect(), frustum*aspect(), frustum, -frustum, 0.1, 50);
-              camera.position.set(3,3,3);
-              camera.lookAt(0,0,0);
-            
-              var renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
-              renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
-              renderer.setSize(window.innerWidth, window.innerHeight);
-              document.body.appendChild(renderer.domElement);
-            
-              var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-              var faceColor = isDark ? 0x121212 : 0xffffff;
-              var lineColor = 0xff7a00;
-            
-              var group = new THREE.Group();
-              // three unit cubes meeting pairwise at shared edges, all touching one common vertex at the origin
-              var positions = [[-0.5,0.5,-0.5], [0.5,-0.5,-0.5], [-0.5,-0.5,0.5]];
-              positions.forEach(function(p){
-                var geo = new THREE.BoxGeometry(1,1,1);
-                var faceMat = new THREE.MeshBasicMaterial({
-                  color: faceColor,
-                  transparent: true,
-                  opacity: 0.25,
-                  polygonOffset: true,
-                  polygonOffsetFactor: 1,
-                  polygonOffsetUnits: 1
-                });
-                var mesh = new THREE.Mesh(geo, faceMat);
-                mesh.position.set(p[0],p[1],p[2]);
-                group.add(mesh);
-            
-                // Thick orange edges made from cylinders, because WebGL linewidth is usually fixed at 1 px.
-                var half = 0.5;
-                var edgeRadius = 0.025;
-                var edgeMat = new THREE.MeshBasicMaterial({color:lineColor});
-                var vertices = [
-                  [-half,-half,-half], [ half,-half,-half], [ half, half,-half], [-half, half,-half],
-                  [-half,-half, half], [ half,-half, half], [ half, half, half], [-half, half, half]
-                ];
-                var edgePairs = [
-                  [0,1],[1,2],[2,3],[3,0], [4,5],[5,6],[6,7],[7,4],
-                  [0,4],[1,5],[2,6],[3,7]
-                ];
-                edgePairs.forEach(function(pair){
-                  var a = new THREE.Vector3().fromArray(vertices[pair[0]]);
-                  var b = new THREE.Vector3().fromArray(vertices[pair[1]]);
-                  var mid = a.clone().add(b).multiplyScalar(0.5);
-                  var dir = b.clone().sub(a);
-                  var len = dir.length();
-                  var cyl = new THREE.Mesh(new THREE.CylinderGeometry(edgeRadius, edgeRadius, len, 8), edgeMat);
-                  cyl.position.copy(mid);
-                  cyl.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir.normalize());
-                  cyl.position.add(new THREE.Vector3(p[0],p[1],p[2]));
-                  group.add(cyl);
-                });
-              });
-              scene.add(group);
-            
-              function onResize(){
-                camera.left = -frustum*aspect(); camera.right = frustum*aspect();
-                camera.top = frustum; camera.bottom = -frustum;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-              }
-              window.addEventListener('resize', onResize);
-            
-              function animate(){
-                requestAnimationFrame(animate);
-                group.rotation.y += 0.008;
-                group.rotation.x = Math.sin(Date.now()*0.00035)*0.3 + 0.1;
-                renderer.render(scene, camera);
-              }
-              animate();
-            })();
-            </script>
-            <br />
-            <h2>samione</h2>
-            <p>Tekoäly, tietoturva ja -suojakonsultointi</p>
-        <!--</div>-->
-    </body>
+<body>
+
+<div id="kuvio"></div>
+
+<div id="teksti">Samione</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const scene=new THREE.Scene(), container=document.getElementById("kuvio");
+const frustum=2.4, thickness=.025, material=new THREE.MeshBasicMaterial({color:0xff7a00});
+
+const aspect=()=>container.clientWidth/container.clientHeight;
+const camera=new THREE.OrthographicCamera(-frustum*aspect(),frustum*aspect(),frustum,-frustum,.1,50);
+camera.position.set(3,3,3);
+camera.lookAt(0,0,0);
+
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+container.appendChild(renderer.domElement);
+
+const group=new THREE.Group();
+scene.add(group);
+
+function edge(a,b){
+  const d=new THREE.Vector3().subVectors(b,a);
+  const m=new THREE.Mesh(
+    new THREE.CylinderGeometry(thickness,thickness,d.length(),8),
+    material
+  );
+  m.position.copy(a).add(b).multiplyScalar(.5);
+  m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.clone().normalize());
+  group.add(m);
+}
+
+function cube(x,y,z){
+  const v=[];
+  for(let X of [-.5,.5])
+    for(let Y of [-.5,.5])
+      for(let Z of [-.5,.5])
+        v.push(new THREE.Vector3(x+X,y+Y,z+Z));
+
+  for(let i=0;i<8;i++)
+    for(let j=i+1;j<8;j++){
+      const a=v[i],b=v[j];
+      if(Math.abs(a.x-b.x)+Math.abs(a.y-b.y)+Math.abs(a.z-b.z)==1) edge(a,b);
+    }
+}
+
+[
+ [-.5,.5,-.5],
+ [.5,-.5,-.5],
+ [-.5,-.5,.5]
+].forEach(p=>cube(...p));
+
+function resize(){
+  camera.left=-frustum*aspect();
+  camera.right=frustum*aspect();
+  camera.updateProjectionMatrix();
+  renderer.setSize(container.clientWidth,container.clientHeight);
+}
+addEventListener("resize",resize);
+resize();
+
+(function animate(){
+  requestAnimationFrame(animate);
+  group.rotation.y+=.008;
+  group.rotation.x=Math.sin(Date.now()*.00035)*.3+.1;
+  renderer.render(scene,camera);
+})();
+</script>
+
+</body>
 </html>
