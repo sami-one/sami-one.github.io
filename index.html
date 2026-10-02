@@ -53,11 +53,101 @@
         $palette-color7: #1e1146;
         $palette-color8: #232323;
         */
+          :root{ --bg:#ffffff; }
+          @media (prefers-color-scheme: dark){
+            :root:not([data-theme="light"]){ --bg:#121212; }
+          }
+          :root[data-theme="dark"]{ --bg:#121212; }
+          html,body{height:100%;margin:0;}
+          body{
+            background:var(--bg);
+            display:flex;align-items:center;justify-content:center;
+            overflow:hidden; box-sizing:border-box;
+            padding-top:env(safe-area-inset-top,0px);
+            padding-bottom:env(safe-area-inset-bottom,0px);
+          }
+          canvas{display:block;}
         </style>
     </head>
-    <div class="center">
-        <img src="vectorpaint.svg" alt="samione cubes" class="logo"/><br/>
-        <h2>samione</h2>
-        <p>Tekoäly, tietoturva ja -suojakonsultointi</p>
-    </div>
+    <body>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+        <div class="center">
+            <!--<img src="vectorpaint.svg" alt="samione cubes" class="logo"/><br/>-->
+            <script>
+            (function(){
+              var scene = new THREE.Scene();
+              var frustum = 1.9;
+            
+              function aspect(){ return window.innerWidth/window.innerHeight; }
+              var camera = new THREE.OrthographicCamera(-frustum*aspect(), frustum*aspect(), frustum, -frustum, 0.1, 50);
+              camera.position.set(3,3,3);
+              camera.lookAt(0,0,0);
+            
+              var renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+              renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+              renderer.setSize(window.innerWidth, window.innerHeight);
+              document.body.appendChild(renderer.domElement);
+            
+              var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+              var faceColor = isDark ? 0x121212 : 0xffffff;
+              var lineColor = 0xff7a00;
+            
+              var group = new THREE.Group();
+              // three unit cubes meeting pairwise at shared edges, all touching one common vertex at the origin
+              var positions = [[-0.5,0.5,-0.5], [0.5,-0.5,-0.5], [-0.5,-0.5,0.5]];
+              positions.forEach(function(p){
+                var geo = new THREE.BoxGeometry(1,1,1);
+                var faceMat = new THREE.MeshBasicMaterial({color:faceColor, polygonOffset:true, polygonOffsetFactor:1, polygonOffsetUnits:1});
+                var mesh = new THREE.Mesh(geo, faceMat);
+                mesh.position.set(p[0],p[1],p[2]);
+                group.add(mesh);
+            
+                // Thick orange edges made from cylinders, because WebGL linewidth is usually fixed at 1 px.
+                var half = 0.5;
+                var edgeRadius = 0.025;
+                var edgeMat = new THREE.MeshBasicMaterial({color:lineColor});
+                var vertices = [
+                  [-half,-half,-half], [ half,-half,-half], [ half, half,-half], [-half, half,-half],
+                  [-half,-half, half], [ half,-half, half], [ half, half, half], [-half, half, half]
+                ];
+                var edgePairs = [
+                  [0,1],[1,2],[2,3],[3,0], [4,5],[5,6],[6,7],[7,4],
+                  [0,4],[1,5],[2,6],[3,7]
+                ];
+                edgePairs.forEach(function(pair){
+                  var a = new THREE.Vector3().fromArray(vertices[pair[0]]);
+                  var b = new THREE.Vector3().fromArray(vertices[pair[1]]);
+                  var mid = a.clone().add(b).multiplyScalar(0.5);
+                  var dir = b.clone().sub(a);
+                  var len = dir.length();
+                  var cyl = new THREE.Mesh(new THREE.CylinderGeometry(edgeRadius, edgeRadius, len, 8), edgeMat);
+                  cyl.position.copy(mid);
+                  cyl.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir.normalize());
+                  cyl.position.add(new THREE.Vector3(p[0],p[1],p[2]));
+                  group.add(cyl);
+                });
+              });
+              scene.add(group);
+            
+              function onResize(){
+                camera.left = -frustum*aspect(); camera.right = frustum*aspect();
+                camera.top = frustum; camera.bottom = -frustum;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+              }
+              window.addEventListener('resize', onResize);
+            
+              function animate(){
+                requestAnimationFrame(animate);
+                group.rotation.y += 0.008;
+                group.rotation.x = Math.sin(Date.now()*0.00035)*0.3 + 0.1;
+                renderer.render(scene, camera);
+              }
+              animate();
+            })();
+            </script>
+            <h2>samione</h2>
+            <p>Tekoäly, tietoturva ja -suojakonsultointi</p>
+        </div>
+    </body>
 </html>
