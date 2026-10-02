@@ -19,7 +19,6 @@
         width: 50%;
         padding: 10px;
         text-align: center;
-        font-family: 'Jost', sans-serif;
         }
         .logo {
             width: 50%;
@@ -62,6 +61,7 @@
             padding-top:env(safe-area-inset-top,0px);
             padding-bottom:env(safe-area-inset-bottom,0px);
             color: #e5e4e9;
+            font-family: 'Jost', sans-serif;
           }
           canvas{display:block;}
         </style>
@@ -94,7 +94,14 @@
               var positions = [[-0.5,0.5,-0.5], [0.5,-0.5,-0.5], [-0.5,-0.5,0.5]];
               positions.forEach(function(p){
                 var geo = new THREE.BoxGeometry(1,1,1);
-                var faceMat = new THREE.MeshBasicMaterial({color:faceColor, polygonOffset:true, polygonOffsetFactor:1, polygonOffsetUnits:1});
+                var faceMat = new THREE.MeshBasicMaterial({
+                  color: faceColor,
+                  transparent: true,
+                  opacity: 0.25,
+                  polygonOffset: true,
+                  polygonOffsetFactor: 1,
+                  polygonOffsetUnits: 1
+                });
                 var mesh = new THREE.Mesh(geo, faceMat);
                 mesh.position.set(p[0],p[1],p[2]);
                 group.add(mesh);
