@@ -8,7 +8,7 @@
 html,body{height:100%;margin:0}
 body{display:flex;flex-direction:column;background:#232323}
 #kuvio{flex:1;min-height:0}
-#teksti{text-align:center;padding:15px;font:18px;color:#e5e4e9;margin-top:-80px;}
+#teksti{text-align:center;padding:15px;font:18px;color:#e5e4e9;margin-top:-200px;}
 h2 {line-height: 0.4em;font-size: 10vw;font-family:'Jost',sans-serif;}
 canvas{display:block}
 </style>
@@ -25,7 +25,7 @@ canvas{display:block}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const scene=new THREE.Scene(), container=document.getElementById("kuvio");
-const frustum=3.0, thickness=.025, material=new THREE.MeshBasicMaterial({color:0xff7a00});
+const frustum=2.8, thickness=.025, material=new THREE.MeshBasicMaterial({color:0xff7a00});
 
 const aspect=()=>container.clientWidth/container.clientHeight;
 const camera=new THREE.OrthographicCamera(-frustum*aspect(),frustum*aspect(),frustum,-frustum,.1,50);
