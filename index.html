@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Samione</title>
+<title>samione.fi</title>
 <style>
 html,body{height:100%;margin:0}
 body{display:flex;flex-direction:column;background:#232323}
@@ -19,13 +19,13 @@ canvas{display:block}
 <div id="kuvio"></div>
 
 <div id="teksti">
-  <h2>Samione</h2>
+  <h2>samione</h2>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const scene=new THREE.Scene(), container=document.getElementById("kuvio");
-const frustum=3.4, thickness=.025, material=new THREE.MeshBasicMaterial({color:0xff7a00});
+const frustum=3.0, thickness=.025, material=new THREE.MeshBasicMaterial({color:0xff7a00});
 
 const aspect=()=>container.clientWidth/container.clientHeight;
 const camera=new THREE.OrthographicCamera(-frustum*aspect(),frustum*aspect(),frustum,-frustum,.1,50);
