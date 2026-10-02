@@ -92,48 +92,4 @@ addEventListener("resize",resize);resize();
 })();
 </script>
 </body>
-</html>});
-
-let timer;
-controls.addEventListener("start",()=>{controls.autoRotate=false;clearTimeout(timer)});
-controls.addEventListener("end",()=>timer=setTimeout(()=>controls.autoRotate=true,3000));
-
-const group=new THREE.Group();scene.add(group);
-
-function edge(a,b){
-  const d=new THREE.Vector3().subVectors(b,a);
-  const m=new THREE.Mesh(new THREE.CylinderGeometry(t,t,d.length(),8),mat);
-  m.position.copy(a).add(b).multiplyScalar(.5);
-  m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.clone().normalize());
-  group.add(m);
-}
-
-function cube(x,y,z){
-  const v=[];
-  for(let X of [-.5,.5])for(let Y of [-.5,.5])for(let Z of [-.5,.5])
-    v.push(new THREE.Vector3(x+X,y+Y,z+Z));
-
-  for(let i=0;i<8;i++)for(let j=i+1;j<8;j++){
-    const a=v[i],b=v[j];
-    if(Math.abs(a.x-b.x)+Math.abs(a.y-b.y)+Math.abs(a.z-b.z)==1)edge(a,b);
-  }
-}
-
-[[-.5,.5,-.5],[.5,-.5,-.5],[-.5,-.5,.5]].forEach(p=>cube(...p));
-
-function resize(){
-  const w=c.clientWidth,h=c.clientHeight,a=w/h;
-  cam.left=-f*(a>1?a:1);cam.right=f*(a>1?a:1);
-  cam.top=f*(a<1?1/a:1);cam.bottom=-f*(a<1?1/a:1);
-  cam.updateProjectionMatrix();r.setSize(w,h);
-}
-addEventListener("resize",resize);resize();
-
-(function animate(){
-  requestAnimationFrame(animate);
-  controls.update();
-  r.render(scene,cam);
-})();
-</script>
-</body>
 </html>
